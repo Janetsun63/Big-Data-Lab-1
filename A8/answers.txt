@@ -1,0 +1,32 @@
+1. What happened when you inserted another row with the same primary key as an existing row?
+
+The record with that primary key was overwrote, which implied that the primary key must be unique.
+
+
+2. What happened when you query a keyspace with replication factor 1 and one node down? How did it behave with replication factor 2 and a node down?
+
+With replication factor = 1 and one node down, the query failed and got the 'NoHostAvailable' error message: 'Unable to complete the operation against any hosts'. That was because there was only one copy of data and the node that stored with data was down. 
+The query succeeded with replication factor 2 and one node down because even with one node down, there was another copy of data on another node. The cluster compensated for the missing node.
+
+
+3. How did the consistency level affect the results with the node up/down?
+
+When the consistency level = 1, only one node is required to respond to the query. Therefore, as long as there was one node up, the query will succeed even with one node down.
+When the consistency level is All and replication factor is 2, all nodes are required to respond to the query and have consistent data. With one node down, data is not consistent across all nodes stored with the same primary key, therefore the query failed with an error message "Cannot achieve consistency level ALL".
+
+
+4. Which of the WHERE id=? values returned successfully with CONSISTENCY ALL when one of the nodes was down? Why do you think some could be returned but not others?
+WHERE id = 1, 4, 5 returned successfully. With replication factor =2, the two copies of records for each primary key (id) was stored in two different nodes. With consistency level = All, all nodes that stored with records of the same id have to be consistent. The reason why id = 1, 4, 5 returned successfully is that the nodes they were stored at were working so the SELECT query worked on both nodes and the results were consistent. However one of the node that stored with id = 2, 3 data was down, so the SELECT operation failed on that node but succeeded on the other one, therefore the two node did not have consistent data and an error message popped up.
+5. What was the CREATE TABLE statement you used for the nasalogs table? What was the primary key you choose, and why?
+
+CREATE TABLE nasalogs (host TEXT, id UUID, datetime TIMESTAMP, path TEXT, bytes INT, PRIMARY KEY (host, id));
+
+I choose (host, id) as the primary key because I want to store all records with the same host to the same node as we need to aggregate data by host to calculate the correlation. so I made host the first component of the compound key and added a UUID field id as the second component to make the overall primary key unique.
+
+
+6. What was the CQL query you used (or tried) to get the total number of bytes?
+
+SELECT host, sum(bytes) from jsa381.nasalogs group by host;
+
+
+
