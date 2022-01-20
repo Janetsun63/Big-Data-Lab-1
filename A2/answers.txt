@@ -1,0 +1,16 @@
+1. In theÊWikipediaPopularÊclass, it would be much more interesting to find the page that is most popular, not just the view count (as we did with Spark). What would be necessary to modify your class to do this? (You don't have to actually implement it.)
+We need to write a class to create pairs of view count and page title, ie. pairs that hold long and text data type, just like the LongPairWritable class we have used in A1. With that, we then need to replace the value in content.write(key, value) in the mapper with the pair, and also change the output in the reducer to the pair of the most view count and the title of that page.2. AnÊRDDÊhas many methods: it can do many more useful tricks than were at hand with MapReduce. Write a sentence or two to explain the difference betweenÊ.mapÊandÊ.flatMap. Which is more like the MapReduce concept of mapping?
+.map transforms an RDD of length N into another RDD of length N whereas .flatMap transforms an RDD of length N into a collection of N elements, then flattens these into a single RDD of results. Therefore, .mapÊis more like the MapReduce concept of mapping.      3. Do the same forÊ.reduceÊandÊ.reduceByKey. Which is more like the MapReduce concept of reducing?TheÊ.reduceÊmethod reducesÊallÊelements in the RDD to one result;Ê.reduceByKeyÊreduces the valuesÊover each key. Therefore, .reduceByKey is more like the MapReduce concept of reducing.4. When finding popular Wikipedia pages, the maximumÊnumberÊof page views is certainly unique, but the most popularÊpageÊmight be a tie. What would your improved Python implementation do if there were two pages with the same highest number of page views in an hour? What would be necessary to make your code findÊallÊof the pages views the maximum number of times? (Again, you don't have to actually implement this.)I will define a max_view function as follows:
+
+def max_view(x,y):
+    if x[1][0] > y[1][0]:
+	return x
+    elif x[1][0] == y[1][0]:
+	return (x[0], (x[1][0], x[1][1], y[1][1]))
+    else:
+	return y
+
+Here, x, y are in the (date, (view, title)) format. I will apply this function to .reduceByKey() like rdd.reduceByKey(max_view).
+By doing so, the output will have all the page titles with the same highest number of views in an hour.
+
+	

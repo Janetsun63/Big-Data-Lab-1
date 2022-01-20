@@ -1,0 +1,20 @@
+1. In the Reddit averages execution plan, which fields were loaded? How was the average computed (and was a combiner-like step done)?
+Score and subreddit fields were loaded. (FileScan json [score#16L, subreddit#18])The average was computed by: 1. Read in the score and subreddit fields, aggregate by subreddit, count and sum up the scores in each partition, partial average was a combiner-like step.2. Shuffle the data and calculate the average on all partitions.
+
+       2. What was the running time for your Reddit averages implementations in the five scenarios described above? How much difference did Python implementation make (PyPy vs the default CPython)? Why was it large for RDDs but not for DataFrames? MapReduce: 			1m51.569s
+Spark DataFrames with CPython: 	1m10.338s
+Spark RDDs with CPython: 		2m35.599s
+Spark DataFrames with PyPy: 	1m8.145s
+Spark RDDs with PyPy:		1m16.738s
+
+Spark RDDs with PyPy was 78.861s faster than with CPython whereas for Spark DataFrame, PyPy made it slightly faster than with CPython.
+
+PyPy increases Python code execution speed drastically through just-in-time (JIT) compilation.
+As all work on elements of a PySpark RDD was done by passing the data back to Python code, PyPy improved the running time of Spark RDD significantly, whereas in Spark DataFrame, all manipulation is done in JVM instead of Python, PyPy had less impact on DataFrame.
+  3. How much of a difference did the broadcast hint make to the Wikipedia popular code's running time (and on what data set)?
+	Running time with broadcast on pagecounts-3: 1m18.565s	Running time without broadcast on pagecounts-3: 2m7.167s	Running time with broadcast was 48.602s faster 4. How did the Wikipedia popular execution plan differ with and without the broadcast hint?	
+The execution plan with broadcast used BroadcastHashJoin whereas without broadcast used sortMergeJoin. 
+5. For the weather data question, did you prefer writing the “DataFrames + Python methods” style, or the “temp tables + SQL syntax” style form solving the problem? Which do you think produces more readable code?
+
+For the weather data question, I personally prefer the “DataFrames + Python methods” style because it looks more readable for me. 
+I think in general, simple logic looks simpler in SQL syntax, difficult logic looks simpler in Python methods.	

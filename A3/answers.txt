@@ -1,0 +1,23 @@
+1. What was wrong with the original wordcount-5 data set that made repartitioning worth it? Why did the program run faster after?
+As there were 8 files in wordcount-5 data, the 8 executors each got assigned with one file to process. However, some of the files were larger than the others, so their corresponding executors took more time to process them. Meanwhile, the other executors that finished the job early were not utilized. By doing repartition, each partition has similar data size, which helps to balance the workload of each executor and increase the parallelism of processing data. 
+
+2. The same fix does not make this code run faster on the wordcount-3 data set. (It may be slightly slower?) Why? [For once, the answer is not “the data set is too small”.]
+Because the data size in each file of wordcount-3 is more balanced so there is no need to do repartition. By doing repartition, the whole data got shuffled and this would add more overhead time and making it slower to process the data.
+3. How could you modify the wordcount-5 input so that the word count code can process it and get the same results as fast as possible? (It's possible to get about another minute off the running time.)I would split wordcount-5 into smaller files with similar data size. To do so, I would repartition the dataset and save the result files as the new input by running the code below:
+text=sc.textFile(inputs).repartition(24)
+text.saveAsTextFile("word count-5-improved")4. When experimenting with the number of partitions while estimating Euler's constant, you likely didn't see much difference for a range of values, and chose the final value in your code somewhere in that range. What range of partitions numbers was “good” (on the desktop/laptop where you were testing)?
+When testing with input=100000000, I got results as below:partitions=10: 11.00s user 1.40s system 40% cpu 30.867 total
+partitions=30: 11.45s user 1.55s system 49% cpu 26.084 total
+partitions=40: 12.38s user 1.70s system 55% cpu 25.532 total
+partitions=50: 13.77s user 1.74s system 57% cpu 26.832 totalpartitions=100: 16.07s user 2.08s system 68% cpu 26.575 totalpartitions=200: 18.39s user 2.48s system 79% cpu 26.132 total
+partitions=300: 19.72s user 2.78s system 84% cpu 26.542 total
+partitions=400: 20.93s user 3.03s system 91% cpu 26.210 total
+partitions=500: 21.80s user 3.33s system 92% cpu 27.113 total
+
+I did't see much difference in processing time when partition number is in the range of 30 to 400.
+
+5. How much overhead does it seem like Spark adds to a job? How much speedup did PyPy get over the usual Python implementation?When testing with input=10, the total processing time was 7.167 seconds, as the input was very small, the time for running the code was almost 0, thus the 7.167 seconds was the overhead that Spark added to the job.When testing with input=1000000000, I got the below result:
+Standard CPython implementation:26.79s user 3.96s system 12% cpu 4:01.25 total
+Spark Python with PyPy: 
+18.00s user 2.51s system 62% cpu 32.743 totalThe running time with PyPy is 32.743 seconds whereas the one with standard Python is 4:01.25 minutes, PyPy made the processing time almost 4 times faster.
+

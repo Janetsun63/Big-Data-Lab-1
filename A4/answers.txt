@@ -1,0 +1,4 @@
+1. How much of a difference did the .cache() make in your Reddit ETL code?      With cache(): 11.964s      Without: 12.741s.cache() made 0.777s2. When would .cache() make code slower than without?
+If we cache a dataframe but never called it after, we added the extra overhead of caching and made code run slower than without .cache()3. Under what conditions will the broadcast join be faster than an actual join?
+When we broadcast join a relatively small dataframe and a large dataframe, it will be fast than an actual join. Because in this case, the cost of sending the small dataframe to all nodes is less expensive than to shuffle the whole data.4. When will the broadcast join be slower?
+When we broadcast join two large dataframes, the executors may run out of memory and if the number of executors is big, the cost of broadcast would be expensive.
